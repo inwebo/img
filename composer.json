@@ -2,7 +2,7 @@
   "name": "inwebo/libre-img-api-component",
   "description": "Universal php 7 image manager",
   "type": "library",
-  "homepage": "https://github.com/inwebo/libre-image-api.git",
+  "homepage": "https://github.com/inwebo/image-api.git",
   "require": {
     "php": ">7.2"
   },
