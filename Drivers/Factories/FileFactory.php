@@ -1,17 +1,5 @@
 <?php
 
-/**
- * @author    Julien Hannotin <julien@ddf.agency>
- *
- * @copyright 2019 Digital Dealer Factory
- *
- * @license   All rights reserved
- *
- * Date: 09/04/19
- * Time: 12:28
- *
- */
-
 namespace Inwebo\ImgAPI\Drivers\Factories;
 
 use Inwebo\ImgAPI\Drivers\AbstractDriver;

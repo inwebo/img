@@ -5,7 +5,6 @@ namespace Inwebo\ImgAPI;
 use Inwebo\ImgAPI\Drivers\DriverInterface;
 use Inwebo\ImgAPI\Drivers\Factories\FactoryInterface;
 use Inwebo\ImgAPI\Drivers\Factories\FileFactory;
-use Inwebo\ImgAPI\Drivers\Factories\ResourceFactory;
 
 /**
  * Class Img
@@ -15,7 +14,7 @@ class Img
     //region attributs
     /** @var DriverInterface */
     protected $driver;
-    /** @var Factory[] */
+    /** @var FactoryInterface[] */
     protected $factories = [];
     /** @var int */
     protected $width = 1;
@@ -39,7 +38,7 @@ class Img
      *
      * @return $this
      */
-    protected function setDriver(DriverInterface $driver): DriverInterface
+    protected function setDriver(DriverInterface $driver): Img
     {
         $this->driver = $driver;
 
@@ -128,14 +127,21 @@ class Img
     static public function create(int $width = 1, int $height = 1): Img
     {
         $img = new self($width, $height);
-        $img->setDriver(new Drivers\GdDriver(imagecreatetruecolor($width, $height)));
+        $img
+            ->setDriver(new Drivers\GdDriver(imagecreatetruecolor($width, $height)))
+            ->setHeight($height)
+            ->setWidth($width);
+
+        return $img;
     }
 
     /**
-     * @param mixed $subject
+     * @param $subject
      * @param FactoryInterface[] $factories
      *
      * @return Img
+     *
+     * @throws \Exception
      */
     static public function open($subject, array $factories = [new FileFactory()]): Img
     {

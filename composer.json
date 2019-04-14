@@ -1,5 +1,5 @@
 {
-  "name": "inwebo/libre-img-api-component",
+  "name": "inwebo/img-api",
   "description": "Universal php 7 image manager",
   "type": "library",
   "homepage": "https://github.com/inwebo/image-api.git",
@@ -10,8 +10,5 @@
     "psr-4": {
       "Inwebo\\ImgAPI\\": ""
     }
-  },
-  "config": {
-    "secure-http": false
   }
 }
