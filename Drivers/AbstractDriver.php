@@ -14,8 +14,6 @@ class AbstractDriver implements DriverInterface
     protected $mimeType;
     //endregion
 
-
-
     //region getters/setters
     /**
      * @return int
@@ -80,10 +78,30 @@ class AbstractDriver implements DriverInterface
         $this->resource = $resource;
     }
 
+    /**
+     * @return mixed
+     */
+    protected function getBinary()
+    {
+        $mimeTypeToPhpFunction = explode('/', $this->getMimeType());
+
+        $subject      = strtolower($mimeTypeToPhpFunction[1]);
+        $functionName = sprintf('image%s', $subject);
+
+        if(function_exists($functionName)) {
+
+            $binary = $functionName($this->getResource());
+
+            if(false !== $binary) {
+                return $binary;
+            }
+        }
+    }
+
     public function display()
     {
         header(sprintf('Content-Type: %s', $this->getMimeType()));
-        imagejpeg($this->getResource());
+        $this->getBinary();
         exit;
     }
 }
