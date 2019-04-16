@@ -13,5 +13,5 @@ interface DriverInterface
 
     public function getHeight(): int;
 
-    public function getResource(): resource;
+    public function getResource();
 }

@@ -50,19 +50,7 @@ class Img
      */
     public function getWidth(): int
     {
-        return $this->width;
-    }
-
-    /**
-     * @param int $width
-     *
-     * @return Img
-     */
-    public function setWidth(int $width): Img
-    {
-        $this->width = $width;
-
-        return $this;
+        return $this->getDriver()->getWidth();
     }
 
     /**
@@ -70,19 +58,7 @@ class Img
      */
     public function getHeight(): int
     {
-        return $this->height;
-    }
-
-    /**
-     * @param int $height
-     *
-     * @return Img
-     */
-    public function setHeight(int $height): Img
-    {
-        $this->height = $height;
-
-        return $this;
+        return $this->getDriver()->getHeight();
     }
 
     /**
@@ -108,15 +84,8 @@ class Img
 
     /**
      * AbstractDriver constructor.
-     *
-     * @param int $width
-     * @param int $height
      */
-    public function __construct(int $width = 1, int $height = 1)
-    {
-        $this->setWidth($width);
-        $this->setHeight($height);
-    }
+    private function __construct() {}
 
     /**
      * @param int $width
@@ -126,35 +95,33 @@ class Img
      */
     static public function create(int $width = 1, int $height = 1): Img
     {
-        $img = new self($width, $height);
+        $img = new self();
         $img
             ->setDriver(new Drivers\GdDriver(imagecreatetruecolor($width, $height)))
-            ->setHeight($height)
-            ->setWidth($width);
+        ;
 
         return $img;
     }
 
     /**
      * @param $subject
-     * @param FactoryInterface[] $factories
+     * @param string[] $factories Class FQDN class
      *
      * @return Img
      *
      * @throws \Exception
      */
-    static public function open($subject, array $factories = [new FileFactory()]): Img
+    static public function open($subject, array $factories = [FileFactory::class]): Img
     {
-
         foreach ($factories as $factory) {
+            /** @var FactoryInterface $factory */
+            $factory = new $factory();
             $driver = $factory->create($subject);
 
             if(!is_null($driver)) {
                 $img = new Img();
                 $img
                     ->setDriver($driver)
-                    ->setHeight($driver->getHeight())
-                    ->setWidth($driver->getWidth())
                     ;
 
                 return $img;
@@ -162,7 +129,9 @@ class Img
         }
     }
 
-
+    /**
+     * @return mixed
+     */
     public function display()
     {
         return $this->getDriver()->display();

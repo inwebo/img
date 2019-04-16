@@ -20,7 +20,7 @@ class AbstractDriver implements DriverInterface
      */
     public function getHeight(): int
     {
-        imagesx($this->resource);
+        return imagesx($this->resource);
     }
 
     /**
@@ -28,13 +28,13 @@ class AbstractDriver implements DriverInterface
      */
     public function getWidth(): int
     {
-        imagesy($this->resource);
+        return imagesy($this->resource);
     }
 
     /**
      * @return resource
      */
-    public function getResource(): resource
+    public function getResource()
     {
         return $this->resource;
     }
@@ -42,7 +42,7 @@ class AbstractDriver implements DriverInterface
     /**
      * @param resource $resource
      */
-    protected function setResource(resource $resource)
+    protected function setResource($resource)
     {
         $this->resource = $resource;
     }
@@ -73,9 +73,11 @@ class AbstractDriver implements DriverInterface
      *
      * @param resource $resource
      */
-    public function __construct(resource &$resource)
+    public function __construct(&$resource)
     {
-        $this->resource = $resource;
+        if(is_resource($resource)) {
+            $this->resource = $resource;
+        }
     }
 
     /**

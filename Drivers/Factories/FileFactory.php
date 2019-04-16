@@ -20,9 +20,10 @@ class FileFactory implements FactoryInterface
     {
         $content = file_get_contents($subject);
 
-        if(is_resource($content)) {
-            $driver    = new GdDriver(imagecreatefromstring($content));
-            $imageType = @exif_imagetype($content);
+        if(is_string($content)) {
+            $img = imagecreatefromstring($content);
+            $driver    = new GdDriver($img);
+            $imageType = @exif_imagetype($subject);
 
             if(false !== $imageType) {
                 $mimeType = @image_type_to_mime_type($imageType);
