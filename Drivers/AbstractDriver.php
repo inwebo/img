@@ -5,7 +5,7 @@ namespace Inwebo\ImgAPI\Drivers;
 /**
  * Class AbstractDriver
  */
-class AbstractDriver implements DriverInterface
+abstract class AbstractDriver implements DriverInterface
 {
     //region attributs
     /** @var resource */
@@ -80,10 +80,7 @@ class AbstractDriver implements DriverInterface
         }
     }
 
-    /**
-     * @return mixed
-     */
-    protected function getBinary()
+    protected function getBinary(): void
     {
         $mimeTypeToPhpFunction = explode('/', $this->getMimeType());
 
@@ -91,12 +88,7 @@ class AbstractDriver implements DriverInterface
         $functionName = sprintf('image%s', $subject);
 
         if(function_exists($functionName)) {
-
-            $binary = $functionName($this->getResource());
-
-            if(false !== $binary) {
-                return $binary;
-            }
+            $functionName($this->getResource());
         }
     }
 
