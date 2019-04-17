@@ -5,6 +5,10 @@ namespace Inwebo\ImgAPI;
 use Inwebo\ImgAPI\Drivers\DriverInterface;
 use Inwebo\ImgAPI\Drivers\Factories\FactoryInterface;
 use Inwebo\ImgAPI\Drivers\Factories\FileFactory;
+use Inwebo\ImgAPI\Editors\Filters;
+use Inwebo\ImgAPI\Exceptions\AbstractImgException;
+use Inwebo\ImgAPI\Exceptions\DriverException;
+use Inwebo\ImgAPI\Exceptions\FilterException;
 
 /**
  * Class Img
@@ -22,6 +26,8 @@ class Img
     protected $height = 1;
     /** @var string */
     protected $mimeType = null;
+    /** @var Filters */
+    protected $filters;
     //endregion
 
     //region getters/setters
@@ -82,6 +88,172 @@ class Img
     }
     //endregion
 
+    // region filters
+    /**
+     * @return Img
+     */
+    public function negate(): Img
+    {
+        Filters::negate($this->getDriver()->getResource());
+
+        return $this;
+    }
+
+    /**
+     * @return Img
+     */
+    public function grayscale(): Img
+    {
+        Filters::grayscale($this->getDriver()->getResource());
+
+        return $this;
+    }
+
+    /**
+     * @param int $brightness
+     * @return Img
+     *
+     * @throws FilterException
+     */
+    public function brightness(int $brightness = 0): Img
+    {
+        try {
+            Filters::brightness($this->getDriver()->getResource(), $brightness);
+        } catch (FilterException $e) {
+            throw  $e;
+        }
+
+        return $this;
+    }
+
+    /**
+     * @param int $contrast
+     * @return Img
+     *
+     * @throws FilterException
+     */
+    public function contrast(int $contrast): Img
+    {
+        try {
+            Filters::contrast($this->getDriver()->getResource(), $contrast);
+        } catch (FilterException $e) {
+            throw  $e;
+        }
+
+        return $this;
+    }
+
+    /**
+     * @param int $red
+     * @param int $green
+     * @param int $blue
+     * @param int $alpha
+     *
+     * @return Img
+     *
+     * @throws FilterException
+     */
+    public function colorize(int $red, int $green, int $blue, int $alpha): Img
+    {
+        try {
+            Filters::colorize($this->getDriver()->getResource(), $red, $green, $blue, $alpha);
+        } catch (FilterException $e) {
+            throw  $e;
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Img
+     */
+    public function edgeDetect(): Img
+    {
+        Filters::edgeDetect($this->getDriver()->getResource());
+
+        return $this;
+    }
+
+    /**
+     * @return Img
+     */
+    public function emboss(): Img
+    {
+        Filters::emboss($this->getDriver()->getResource());
+
+        return $this;
+    }
+
+    /**
+     * @param int $repeat
+     *
+     * @return $this
+     */
+    public function gaussianBlur(int $repeat = 1)
+    {
+        Filters::gaussianBlur($this->getDriver()->getResource(), $repeat);
+
+        return $this;
+    }
+
+    /**
+     * @return Img
+     */
+    public function selectiveBlur(): Img
+    {
+        Filters::selectiveBlur($this->getDriver()->getResource());
+
+        return $this;
+    }
+
+    /**
+     * @return Img
+     */
+    public function meanRemoval(): Img
+    {
+        Filters::meanRemoval($this->getDriver()->getResource());
+
+        return $this;
+    }
+
+    /**
+     * @param int $level
+     *
+     * @return Img
+     */
+    public function smooth(int $level): Img
+    {
+        Filters::smooth($this->getDriver()->getResource(), $level);
+
+        return $this;
+    }
+
+    /**
+     * @param int $pixelSize
+     * @param bool $advanced
+     *
+     * @return Img
+     */
+    public function pixelate(int $pixelSize, bool $advanced = true): Img
+    {
+        Filters::pixelate($this->getDriver()->getResource(), $pixelSize, $advanced);
+
+        return $this;
+    }
+
+    /**
+     * @return Img
+     *
+     * @throws AbstractImgException
+     */
+    public function sepia(): Img
+    {
+        Filters::sepia($this->getDriver()->getResource());
+
+        return $this;
+    }
+    // endregion
+
     /**
      * AbstractDriver constructor.
      */
@@ -109,10 +281,12 @@ class Img
      *
      * @return Img
      *
-     * @throws \Exception
+     * @throws AbstractImgException
      */
     static public function open($subject, array $factories = [FileFactory::class]): Img
     {
+        $img = null;
+
         foreach ($factories as $factory) {
             /** @var FactoryInterface $factory */
             $factory = new $factory();
@@ -127,6 +301,12 @@ class Img
                 return $img;
             }
         }
+
+        if(is_null($img)) {
+            throw new DriverException(sprintf('%s is not a supported file', $subject));
+        }
+
+        return $img;
     }
 
     /**
