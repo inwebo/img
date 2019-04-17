@@ -21,7 +21,10 @@ class FileFactory implements FactoryInterface
         $content = file_get_contents($subject);
 
         if(is_string($content)) {
-            $img = imagecreatefromstring($content);
+            $img       = @imagecreatefromstring($content);
+            if(false === $img) {
+                return null;
+            }
             $driver    = new GdDriver($img);
             $imageType = @exif_imagetype($subject);
 
@@ -36,5 +39,7 @@ class FileFactory implements FactoryInterface
 
             return $driver;
         }
+
+        return null;
     }
 }
