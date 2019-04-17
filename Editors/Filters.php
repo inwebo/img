@@ -2,6 +2,9 @@
 
 namespace Inwebo\ImgAPI\Editors;
 
+use Inwebo\ImgAPI\Exceptions\AbstractImgException;
+use Inwebo\ImgAPI\Exceptions\FilterException;
+
 /**
  * Class Filters
  *
@@ -9,173 +12,153 @@ namespace Inwebo\ImgAPI\Editors;
  */
 class Filters
 {
-    /** @var resource */
-    protected $resource;
-
-    // region getters/setters
     /**
-     * @return resource
+     * @param resource $resource
      */
-    public function getResource(): resource
+    static public function negate($resource): void
     {
-        return $this->resource;
+        imagefilter($resource, IMG_FILTER_NEGATE);
+    }
+
+    /**
+     * @param resource $resource
+     */
+    static public function grayscale($resource): void
+    {
+        imagefilter($resource, IMG_FILTER_GRAYSCALE);
+    }
+
+    /**
+     * @param resource $resource
+     * @param int      $brightness [-255, 255]
+     *
+     * @throws FilterException
+     */
+    static public function brightness($resource, int $brightness): void
+    {
+        if($brightness > 255 || $brightness < -255) {
+            throw new FilterException(sprintf('%s filter interval [-255, 255], input: %s ', 'Brightness', $brightness));
+        }
+
+        imagefilter($resource, IMG_FILTER_BRIGHTNESS, $brightness);
+    }
+
+    /**
+     * @param resource $resource
+     * @param int      $contrast -100 = max contrast, 0 = no change, +100 = min contrast
+     *
+     * @throws FilterException
+     */
+    static public function contrast($resource, int $contrast): void
+    {
+        if($contrast > 255 || $contrast < -255) {
+            throw new FilterException(sprintf('%s filter interval [-255, 255], input: %s ', 'Contrast', $contrast));
+        }
+
+        imagefilter($resource, IMG_FILTER_CONTRAST, $contrast);
+    }
+
+    /**
+     * @param resource $resource
+     * @param int      $red [-255,255]
+     * @param int      $green [-255,255]
+     * @param int      $blue [-255,255]
+     * @param int      $alpha [-255,255]
+     *
+     * @throws FilterException
+     */
+    static public function colorize($resource, int $red = 0, int $green = 0, int $blue = 0, int $alpha = 0): void
+    {
+        foreach (['red' => $red, 'green' => $green, 'blue' => $blue, 'alpha' => $alpha] as $key => $value) {
+            if($value < -255 || $value > 255) {
+                throw new FilterException(
+                    sprintf('%s filter value interval [-255, 255], %s input: %s', 'Colorize', $key, $value)
+                );
+            }
+        }
+
+        imagefilter($resource, IMG_FILTER_COLORIZE, $red, $green, $blue, $alpha);
+    }
+
+    /**
+     * @param resource $resource
+     */
+    static public function edgeDetect($resource): void
+    {
+        imagefilter($resource, IMG_FILTER_EDGEDETECT);
+    }
+
+    /**
+     * @param resource $resource
+     */
+    static public function emboss($resource): void
+    {
+        imagefilter($resource, IMG_FILTER_EMBOSS);
+    }
+
+    /**
+     * @param resource $resource
+     * @param int      $repeat
+     */
+    static public function gaussianBlur($resource, int $repeat = 1): void
+    {
+        while($repeat !=0) {
+            imagefilter($resource, IMG_FILTER_GAUSSIAN_BLUR);
+            --$repeat;
+        }
+    }
+
+    /**
+     * @param int      $repeat
+     * @param resource $resource
+     */
+    static public function selectiveBlur($resource, int $repeat = 1): void
+    {
+        while($repeat !=0) {
+            imagefilter($resource, IMG_FILTER_SELECTIVE_BLUR);
+            --$repeat;
+        }
+    }
+
+    /**
+     * @param resource $resource
+     */
+    static public function meanRemoval($resource): void
+    {
+        imagefilter($resource, IMG_FILTER_MEAN_REMOVAL);
+    }
+
+    /**
+     * @param resource $resource
+     * @param int      $level level of smoothness
+     */
+    static public function smooth($resource, int $level): void
+    {
+        imagefilter($resource, IMG_FILTER_SMOOTH, $level);
+    }
+
+    /**
+     * @param resource $resource
+     * @param int      $pixelSize
+     * @param bool     $advanced
+     */
+    static public function pixelate($resource, int $pixelSize, bool $advanced = true): void
+    {
+        imagefilter($resource, IMG_FILTER_PIXELATE, $pixelSize, $advanced);
     }
 
     /**
      * @param resource $resource
      *
-     * @return Filters
+     * @throws AbstractImgException
      */
-    public function setResource(resource $resource): self
+    static public function sepia($resource): void
     {
-        $this->resource = $resource;
-
-        return $this;
+        Filters::grayscale($resource);
+        try {
+            Filters::colorize($resource, 90, 60, 30);
+        } catch (AbstractImgException $e) {
+            throw $e;
+        }
     }
-    //endregion
-
-    /**
-     * Filters constructor.
-     *
-     * @param resource $resource
-     */
-    public function __construct(resource $resource)
-    {
-        $this->setResource($resource);
-    }
-
-    /**
-     * @return Filters
-     */
-    public function filterNegate(): self
-    {
-        imagefilter($this->getResource(), IMG_FILTER_NEGATE);
-
-        return $this;
-    }
-
-    /**
-     * @return Filters
-     */
-    public function filterGrayscale(): self
-    {
-        imagefilter($this->getResource(), IMG_FILTER_GRAYSCALE);
-
-        return $this;
-    }
-
-    /**
-     * @param int $brightness [-255, 255]
-     *
-     * @return Filters
-     */
-    public function filterBrightness(int $brightness): self
-    {
-        imagefilter($this->getResource(), IMG_FILTER_GRAYSCALE, $brightness);
-
-        return $this;
-    }
-
-    /**
-     * @param int $contrast
-     *
-     * @return Filters
-     */
-    public function filterContrast(int $contrast): self
-    {
-        imagefilter($this->getResource(), IMG_FILTER_CONTRAST, $contrast);
-
-        return $this;
-    }
-
-    /**
-     * @param int $red [0,255]
-     * @param int $green [0,255]
-     * @param int $blue [0,255]
-     * @param int $alpha [0,255]
-     *
-     * @return $this
-     */
-    public function filterColorize(int $red, int $green, int $blue, int $alpha = 1): self
-    {
-        imagefilter($this->getResource(), IMG_FILTER_GRAYSCALE, $red, $green, $blue, $alpha);
-
-        return $this;
-    }
-
-    /**
-     * @return Filters
-     */
-    public function filterEdgeDetect(): self
-    {
-        imagefilter($this->getResource(), IMG_FILTER_EDGEDETECT);
-
-        return $this;
-    }
-
-    /**
-     * @return Filters
-     */
-    public function filterEmboss(): self
-    {
-        imagefilter($this->getResource(), IMG_FILTER_EMBOSS);
-
-        return $this;
-    }
-
-    /**
-     * @return Filters
-     */
-    public function filterGaussianBlur(): self
-    {
-        imagefilter($this->getResource(), IMG_FILTER_GAUSSIAN_BLUR);
-
-        return $this;
-    }
-
-    /**
-     * @return Filters
-     */
-    public function filterSelectiveBlur(): self
-    {
-        imagefilter($this->getResource(), IMG_FILTER_SELECTIVE_BLUR);
-
-        return $this;
-    }
-
-    /**
-     * @return Filters
-     */
-    public function filterMeanRemoval(): self
-    {
-        imagefilter($this->getResource(), IMG_FILTER_MEAN_REMOVAL);
-
-        return $this;
-    }
-
-    /**
-     * @return Filters
-     */
-    public function filterSmooth(): self
-    {
-        imagefilter($this->getResource(), IMG_FILTER_SMOOTH);
-
-        return $this;
-    }
-
-    /**
-     * @param int $pixelSize
-     * @param int $effect
-     *
-     * @todo params
-     * @return Filters
-     */
-    public function filterPixelate(int $pixelSize, int $effect): self
-    {
-        imagefilter($this->getResource(), IMG_FILTER_PIXELATE, $pixelSize, $effect);
-
-        return $this;
-    }
-
-
 }
