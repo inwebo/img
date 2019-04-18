@@ -12,6 +12,8 @@ abstract class AbstractDriver implements DriverInterface
     protected $resource;
     /** @var string */
     protected $mimeType;
+    /** @var null|string */
+    protected $subject = null;
     //endregion
 
     //region getters/setters
@@ -66,6 +68,26 @@ abstract class AbstractDriver implements DriverInterface
 
         return $this;
     }
+
+    /**
+     * @return null|string
+     */
+    public function getSubject(): ?string
+    {
+        return $this->subject;
+    }
+
+    /**
+     * @param string $subject
+     *
+     * @return AbstractDriver
+     */
+    public function setSubject(string $subject): AbstractDriver
+    {
+        $this->subject = $subject;
+
+        return $this;
+    }
     //endregion
 
     /**
@@ -80,13 +102,22 @@ abstract class AbstractDriver implements DriverInterface
         }
     }
 
-    protected function getBinary(): void
+    /**
+     * @return string builtin gd function name
+     */
+    private function getGdFunctionName(): string
     {
         $mimeTypeToPhpFunction = explode('/', $this->getMimeType());
 
         $subject      = strtolower($mimeTypeToPhpFunction[1]);
         $functionName = sprintf('image%s', $subject);
 
+        return $functionName;
+    }
+
+    protected function getBinary(): void
+    {
+        $functionName = $this->getGdFunctionName();
         if(function_exists($functionName)) {
             $functionName($this->getResource());
         }
@@ -95,7 +126,24 @@ abstract class AbstractDriver implements DriverInterface
     public function display()
     {
         header(sprintf('Content-Type: %s', $this->getMimeType()));
+        imagealphablending($this->getResource(), false);
+        imagesavealpha($this->getResource(), true);
+
         $this->getBinary();
+
         exit;
+    }
+
+    /**
+     * @param string $path
+     *
+     * @param mixed ...$arg
+     */
+    public function save(string $path, ...$arg)
+    {
+        $functionName = $this->getGdFunctionName();
+        if(function_exists($functionName)) {
+            $functionName($this->getResource(), $path);
+        }
     }
 }

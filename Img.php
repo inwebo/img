@@ -5,6 +5,9 @@ namespace Inwebo\ImgAPI;
 use Inwebo\ImgAPI\Drivers\DriverInterface;
 use Inwebo\ImgAPI\Drivers\Factories\FactoryInterface;
 use Inwebo\ImgAPI\Drivers\Factories\FileFactory;
+use Inwebo\ImgAPI\Drivers\Factories\IcoFactory;
+use Inwebo\ImgAPI\Drivers\Factories\ResourceFactory;
+use Inwebo\ImgAPI\Editors\Edit;
 use Inwebo\ImgAPI\Editors\Filters;
 use Inwebo\ImgAPI\Exceptions\AbstractImgException;
 use Inwebo\ImgAPI\Exceptions\DriverException;
@@ -254,6 +257,62 @@ class Img
     }
     // endregion
 
+    // region editor
+    /**
+     * @param int|null $width
+     * @param int|null $height
+     *
+     * @return Img
+     *
+     * @throws AbstractImgException
+     */
+    public function resize(?int $width = null, ?int $height = null): Img
+    {
+        $resource = Edit::resize($this->getDriver()->getResource(), $width, $height);
+
+        try {
+            $img = Img::open($resource, [ResourceFactory::class]);
+            $img->getDriver()->setMimeType($this->getDriver()->getMimeType());
+
+            return $img;
+        } catch (AbstractImgException $e) {
+            throw $e;
+        }
+    }
+
+    /**
+     * @return array
+     */
+    public function getPalette(): array
+    {
+        return Edit::getPalette($this->getDriver()->getResource());
+    }
+
+    public function flip(): Img
+    {
+        Edit::flip($this->getDriver()->getResource());
+
+        return $this;
+    }
+    // endregion
+
+    // region tools
+    /**
+     * @return array
+     *
+     * @see https://www.php.net/manual/en/function.exif-read-data.php
+     */
+    public function getExifData(): array
+    {
+        $data = @exif_read_data($this->getDriver()->getSubject());
+
+        if(false !== $data) {
+            return $data;
+        }
+
+        return [];
+    }
+    // endregion
     /**
      * AbstractDriver constructor.
      */
@@ -283,7 +342,7 @@ class Img
      *
      * @throws AbstractImgException
      */
-    static public function open($subject, array $factories = [FileFactory::class]): Img
+    static public function open($subject, array $factories = [FileFactory::class, ResourceFactory::class]): Img
     {
         $img = null;
 
@@ -315,5 +374,17 @@ class Img
     public function display()
     {
         return $this->getDriver()->display();
+    }
+
+    /**
+     * @param string $path
+     *
+     * @return $this
+     */
+    public function save(string $path)
+    {
+        $this->getDriver()->save($path);
+
+        return $this;
     }
 }

@@ -22,17 +22,21 @@ class FileFactory implements FactoryInterface
 
         if(is_string($content)) {
             $img       = @imagecreatefromstring($content);
+
             if(false === $img) {
                 return null;
             }
+
             $driver    = new GdDriver($img);
             $imageType = @exif_imagetype($subject);
 
             if(false !== $imageType) {
                 $mimeType = @image_type_to_mime_type($imageType);
+
                 if(false !== $mimeType) {
                     $driver
                         ->setMimeType($mimeType)
+                        ->setSubject($subject)
                     ;
                 }
             }
